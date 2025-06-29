@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { ProductRepo } from './product.repo'
 import { CreateProductBodyType, ProductQueryType, UpdateProductBodyType } from './product.model'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
+import { S3Service } from 'src/shared/services/s3.service'
 
 @Injectable()
 export class ManageProductService {
-  constructor(private readonly productRepo: ProductRepo) {}
+  constructor(
+    private readonly productRepo: ProductRepo,
+    private readonly s3Service: S3Service
+  ) {}
 
   private async verifyProductExists(productId: number) {
     const product = await this.productRepo.findById(productId)
@@ -58,8 +62,11 @@ export class ManageProductService {
   }
 
   async delete(productId: number) {
-    await this.verifyProductExists(productId)
+    const product = await this.verifyProductExists(productId)
     await this.productRepo.delete(productId)
+    if (product.images) {
+      await this.s3Service.deleteFiles(product.images)
+    }
     return { message: 'Product deleted successfully' }
   }
 }

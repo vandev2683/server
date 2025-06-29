@@ -8,7 +8,7 @@ import { z } from 'zod'
 function generateVariants(variants: ProductVariantsType) {
   // Hàm hỗ trợ để tạo tất cả tổ hợp
   function getCombinations(arrays: string[][]): string[] {
-    return arrays.reduce((acc, curr) => acc.flatMap((x) => curr.map((y) => `${x}${x ? '-' : ''}${y}`)), [''])
+    return arrays.reduce((acc, curr) => acc.flatMap((x) => curr.map((y) => `${x}${x ? ' / ' : ''}${y}`)), [''])
   }
 
   // Lấy mảng các options từ variants
@@ -106,7 +106,11 @@ export const CreateProductBodySchema = ProductSchema.pick({
 
     // Kiểm tra xem các giá trị của variants có khớp với variantsConfig không
     for (let i = 0; i < variants.length; i++) {
-      const isValid = variants[i].value === variantValues[i].value
+      const isValid = variants[i].value === variantValues[i].value || variants[i].value === 'default'
+      if (variants[i].value === 'default') {
+        variantsConfig[0].type = 'default'
+        variantsConfig[0].options = ['default']
+      }
       if (!isValid) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
