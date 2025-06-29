@@ -1,0 +1,408 @@
+// 1. @default -> Sets a default value for the field. Not nullable.
+// 2. Type? -> Indicates that the field is optional (nullable).
+// -> Only use 1 or 2, not both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @db.VarChar(500) @unique
+  password    String    @db.VarChar(500)
+  name        String    @db.VarChar(500) @default("")
+  phoneNumber String    @db.VarChar(50) @default("")
+  avatar      String?   @db.VarChar(1000)
+  dateOfBirth DateTime?
+  totpSecret  String?   @db.VarChar(1000)
+  status      UserStatus @default(Active)
+  roleId                      Int
+  role                        Role                  @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  refreshTokens               RefreshToken[]
+  addresses                   Address[]
+  carts                       CartItem[]
+  bookings                    Booking[]
+  reviews                     Review[]
+  orders                      Order[]
+  handledOrders              Order[] @relation("OrderHandler")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @db.VarChar(1000) @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model VerificationCode {
+  id    Int                  @id @default(autoincrement())
+  email String               @db.VarChar(500)
+  code  String               @db.VarChar(50)
+  type  VerificationCodeType
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, code, type])
+  @@index([expiresAt])
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(500) @unique
+  description String       @default("")
+  isActive    Boolean      @default(true)
+  permissions Permission[]
+  users       User[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Permission {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(500)
+  description String     @default("")
+  path        String     @db.VarChar(1000)
+  method      HTTPMethod
+  module      String     @db.VarChar(500) @default("")
+  roles       Role[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([method, path])
+}
+
+model Address {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  recipientName   String   @db.VarChar(500)
+  recipientPhone  String   @db.VarChar(50)
+  provinceId      Int
+  province        Province @relation(fields: [provinceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  districtId      Int
+  district        District @relation(fields: [districtId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wardId          Int
+  ward            Ward     @relation(fields: [wardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  detailAddress   String
+  deliveryNote    String   @default("")
+  isDefault       Boolean  @default(false)
+  orders          Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Province {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(500)
+  nameEn    String     @db.VarChar(500)
+  latitude  String     @db.VarChar(50)
+  longitude String     @db.VarChar(50)
+  districts District[]
+  addresses Address[]
+}
+
+model District {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(500)
+  nameEn     String    @db.VarChar(500)
+  latitude   String    @db.VarChar(50)
+  longitude  String    @db.VarChar(50)
+  provinceId Int
+  province   Province  @relation(fields: [provinceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wards      Ward[]
+  addresses  Address[]
+}
+
+model Ward {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(500)
+  nameEn     String    @db.VarChar(500)
+  latitude   String    @db.VarChar(50)
+  longitude  String    @db.VarChar(50)
+  districtId Int
+  district   District  @relation(fields: [districtId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  addresses  Address[]
+}
+
+model Product {
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(1000)
+  basePrice     Float
+  description   String        @default("")
+  images        String[]
+  status        ProductStatus @default(Pending)
+  /// [ProductVariants]
+  variantsConfig Json
+  categories    Category[]
+  tags          Tag[]
+  variants      Variant[]
+  reviews       Review[]
+  orderItems    OrderItem[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Variant {
+  id         Int     @id @default(autoincrement())
+  productId  Int
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  value      String   @db.VarChar(1000)
+  thumbnail  String?
+  price      Float
+  stock      Int
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Category {
+  id               Int        @id @default(autoincrement())
+  name             String     @db.VarChar(500)
+  parentCategoryId Int?
+  parentCategory   Category?  @relation("ParentCategoryCategories", fields: [parentCategoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  childCategories  Category[] @relation("ParentCategoryCategories")
+  description      String     @default("")
+  products         Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(500)
+  type        TagType
+  description String    @default("")
+  products    Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, type])
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  variantId Int
+  variant   Variant @relation(fields: [variantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, variantId])
+  @@index([userId])
+}
+
+model Table {
+  id        Int         @id @default(autoincrement())
+  code      String      @db.VarChar(50) @unique
+  capacity  Int
+  status    TableStatus @default(Available)
+  location  String      @db.VarChar(1000) @default("")
+  bookings  Booking[]
+  orders    Order[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Booking {
+  id              Int           @id @default(autoincrement())
+  guestName       String        @db.VarChar(500)
+  guestPhone      String        @db.VarChar(50)
+  numberOfGuest   Int
+  bookingDateTime DateTime
+  status          BookingStatus
+  note            String        @default("")
+  userId          Int?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  tables          Table[]
+  orders          Order[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Coupon {
+  id                  Int      @id @default(autoincrement())
+  code                String   @db.VarChar(500) @unique
+  description         String   @default("")
+  discountValue       Float
+  minOrderAmount      Float    @default(0)
+  usageLimit          Int      @default(0)
+  isActive            Boolean  @default(true)
+  orders              Order[]
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                Int       @id @default(autoincrement())
+  // Type sẽ được sử dụng để phân biệt giữa các loại đơn hàng như giao hàng, ăn tại chỗ
+  orderType         OrderType
+  customerName         String    @db.VarChar(500) @default("")
+  // Thông tin người dùng cho đơn giao hàng
+  userId            Int?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deliveryAddressId Int?
+  deliveryAddress   Address?  @relation(fields: [deliveryAddressId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  // Thông tin bàn ăn
+  // - Thông tin nếu đơn hàng là ăn tại chỗ (table)
+  tableId           Int?
+  table             Table?    @relation(fields: [tableId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  // - Thông tin nếu đơn hàng là đặt bàn trước (table + booking)
+  bookingId         Int?
+  booking           Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  couponId          Int?
+  coupon            Coupon?   @relation(fields: [couponId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  totalAmount       Float
+  discountAmount    Float      @default(0)
+  finalAmount       Float
+  /// [Payment]
+  payment           Json
+  note              String      @default("")
+  status            OrderStatus
+  handlerId         Int?
+  handler           User?       @relation("OrderHandler", fields: [handlerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  orderItems OrderItem[]
+  reviews    Review[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model OrderItem {
+  id               Int      @id @default(autoincrement())
+  productName      String   @db.VarChar(500)
+  thumbnail        String
+  /// [VariantAttributes]
+  variantAttributes Json
+  quantity         Int
+  price            Float
+  orderId          Int
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  productId        Int?
+  product          Product?  @relation(fields: [productId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  variantId        Int?
+  variant          Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+model Review {
+  id        Int     @id @default(autoincrement())
+  content   String  @default("")
+  rating    Int
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, productId])
+  @@index([productId])
+}
+
+enum UserStatus {
+  Active
+  Inactive
+  Blocked
+}
+
+enum VerificationCodeType {
+  Register
+  ForgotPassword
+  Login2FA
+  Disable2FA
+}
+
+enum HTTPMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+  OPTIONS
+  HEAD
+}
+
+enum ProductStatus {
+  Pending
+  Available
+  OutOfStock
+  Hidden
+}
+
+enum TagType {
+  Spice
+  Marketing
+  Seasonal
+  Custom
+}
+
+enum TableStatus {
+  Available
+  Occupied
+  Reserved
+  Cleaning
+  Disabled
+}
+
+enum BookingStatus {
+  Pending
+  Confirmed
+  Arrived
+  Completed
+  Cancelled
+}
+
+enum OrderType {
+  Delivery
+  DineIn
+}
+
+enum OrderStatus {
+  Pending
+  Confirmed
+  Preparing
+  Ready
+  OutForDelivery
+  Served
+  Completed
+  Cancelled
+}
+
+enum PaymentMethod {
+  Cash
+  MOMO
+  VNPay
+  COD
+}
+
+enum PaymentStatus {
+  Pending
+  Succeeded
+  Failed
+  Refunded
+}
