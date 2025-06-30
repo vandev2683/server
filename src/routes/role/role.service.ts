@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { RoleRepo } from './role.repo'
 import { PaginationQueryType } from 'src/shared/models/request.model'
-import { CreateRoleBodyType, RoleType, UpdateRoleBodyType } from './role.model'
+import { ChangeRoleStatusBodyType, CreateRoleBodyType, RoleType, UpdateRoleBodyType } from './role.model'
 import { isNotFoundPrismaError, isUniquePrismaError } from 'src/shared/helpers'
 import { RoleName } from 'src/shared/constants/role.constant'
 
@@ -66,6 +66,13 @@ export class RoleService {
       }
       throw error
     }
+  }
+
+  async changeStatus(roleId: number, data: ChangeRoleStatusBodyType) {
+    const existRole = await this.verifyRoleExists(roleId)
+    this.verifyAdminRole(existRole)
+    await this.roleRepo.changeStatus(roleId, data)
+    return { message: 'Role status updated successfully' }
   }
 
   async delete(roleId: number) {

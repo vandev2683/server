@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import {
+  ChangeRoleStatusBodySchema,
   CreateRoleBodySchema,
   GetAllRolesResSchema,
   GetRoleDetailResSchema,
@@ -16,3 +17,4 @@ export class GetAllRolesResDTO extends createZodDto(GetAllRolesResSchema) {}
 export class GetRoleDetailResDTO extends createZodDto(GetRoleDetailResSchema) {}
 export class CreateRoleBodyDTO extends createZodDto(CreateRoleBodySchema) {}
 export class UpdateRoleBodyDTO extends createZodDto(UpdateRoleBodySchema) {}
+export class ChangeRoleStatusBodyDTO extends createZodDto(ChangeRoleStatusBodySchema) {}

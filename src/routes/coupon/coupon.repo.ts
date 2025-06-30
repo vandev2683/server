@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateCouponBodyType, UpdateCouponBodyType } from './coupon.model'
+import { ChangeCouponStatusBodyType, CreateCouponBodyType, UpdateCouponBodyType } from './coupon.model'
 
 @Injectable()
 export class CouponRepo {
@@ -58,6 +58,13 @@ export class CouponRepo {
     return await this.prismaService.coupon.update({
       where: { id: couponId },
       data
+    })
+  }
+
+  async changeStatus(couponId: number, data: ChangeCouponStatusBodyType) {
+    return await this.prismaService.coupon.update({
+      where: { id: couponId },
+      data: { isActive: data.isActive }
     })
   }
 

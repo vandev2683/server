@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 import { CouponRepo } from './coupon.repo'
 import { PaginationQueryType } from 'src/shared/models/request.model'
-import { CreateCouponBodyType, UpdateCouponBodyType } from './coupon.model'
+import { ChangeCouponStatusBodyType, CreateCouponBodyType, UpdateCouponBodyType } from './coupon.model'
 import { isUniquePrismaError } from 'src/shared/helpers'
 
 @Injectable()
@@ -51,6 +51,12 @@ export class CouponService {
       }
       throw error
     }
+  }
+
+  async changeStatus(couponId: number, data: ChangeCouponStatusBodyType) {
+    await this.verifyCouponExists(couponId)
+    await this.couponRepo.changeStatus(couponId, data)
+    return { message: 'Coupon status updated successfully' }
   }
 
   async delete(couponId: number) {

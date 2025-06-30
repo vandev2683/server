@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { RoleService } from './role.service'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
+  ChangeRoleStatusBodyDTO,
   CreateRoleBodyDTO,
   GetAllRolesResDTO,
   GetRoleDetailResDTO,
@@ -11,6 +12,7 @@ import {
   UpdateRoleBodyDTO
 } from './role.dto'
 import { PaginationQueryDTO } from 'src/shared/dtos/request.dto'
+import { MessageResDTO } from 'src/shared/dtos/response.dto'
 
 @Controller('roles')
 export class RoleController {
@@ -46,7 +48,14 @@ export class RoleController {
     return this.roleService.update(params.roleId, body)
   }
 
+  @Patch(':roleId/change-status')
+  @ZodSerializerDto(MessageResDTO)
+  changeStatus(@Param() params: RoleParamsDTO, @Body() body: ChangeRoleStatusBodyDTO) {
+    return this.roleService.changeStatus(params.roleId, body)
+  }
+
   @Delete(':roleId')
+  @ZodSerializerDto(MessageResDTO)
   delete(@Param() params: RoleParamsDTO) {
     return this.roleService.delete(params.roleId)
   }

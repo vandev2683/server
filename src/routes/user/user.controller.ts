@@ -4,6 +4,7 @@ import { ZodSerializerDto } from 'nestjs-zod'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 import {
   ChangePasswordBodyDTO,
+  ChangeUserStatusBodyDTO,
   CreateUserBodyDTO,
   GetAllUsersResDTO,
   GetUsersResDTO,
@@ -47,10 +48,19 @@ export class UserController {
     return this.userService.update(params.userId, body)
   }
 
-  @Patch('change-password')
+  @Patch(':userId/change-password')
   @ZodSerializerDto(MessageResDTO)
-  changePassword(@Body() body: ChangePasswordBodyDTO) {
-    return this.userService.changePassword(body)
+  changePassword(@Param() params: UserParamsDTO, @Body() body: ChangePasswordBodyDTO) {
+    return this.userService.changePassword(params.userId, body)
+  }
+
+  @Patch(':userId/change-status')
+  @ZodSerializerDto(MessageResDTO)
+  async changeStatus(@Param() params: UserParamsDTO, @Body() body: ChangeUserStatusBodyDTO) {
+    await this.userService.changeStatus(params.userId, body)
+    return {
+      message: 'User status updated successfully'
+    }
   }
 
   @Delete(':userId')

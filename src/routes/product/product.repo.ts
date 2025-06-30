@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateProductBodyType, ProductQueryType, UpdateProductBodyType } from './product.model'
+import {
+  ChangeProductStatusBodyType,
+  CreateProductBodyType,
+  ProductQueryType,
+  UpdateProductBodyType
+} from './product.model'
 import { Prisma } from '@prisma/client'
 import { SortBy } from 'src/shared/constants/common.constant'
 import { ProductType } from 'src/shared/models/shared-product.model'
@@ -236,6 +241,13 @@ export class ProductRepo {
     ])
 
     return product
+  }
+
+  async changeStatus(productId: number, data: ChangeProductStatusBodyType) {
+    return await this.prismaService.product.update({
+      where: { id: productId },
+      data: { status: data.status }
+    })
   }
 
   async delete(productId: number) {

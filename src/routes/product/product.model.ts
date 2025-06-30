@@ -94,19 +94,48 @@ export const CreateProductBodySchema = ProductSchema.pick({
   })
   .strict()
   .superRefine(({ variantsConfig, variants }, ctx) => {
-    const variantValues = generateVariants(variantsConfig)
-    // Kiểm tra xem kích thước của variants có khớp với variantsConfig không
-    if (variantValues.length !== variants.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `The number of variants (${variants.length}) does not match. Please check again.`,
-        path: ['variants']
+    for (let i = 0; i < variantsConfig.length; i++) {
+      const variant = variantsConfig[i]
+      // Kiểm tra các type có trùng lặp
+      const typeIndex = variantsConfig.findIndex((v) => v.type.toLowerCase() === variant.type.toLowerCase())
+      if (typeIndex !== i) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Type "${variant.type}" is duplicated. Please ensure each type is unique.`,
+          path: ['variants']
+        })
+      }
+
+      // Kiểm tra các options của type có trùng lặp
+      const isDuplicateOption = variant.options.some((option, index) => {
+        return variant.options.findIndex((o) => o.toLowerCase() === option.toLowerCase()) !== index
       })
+      if (isDuplicateOption) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Options for type "${variant.type}" contain duplicates. Please ensure each option is unique.`,
+          path: ['variants']
+        })
+      }
     }
+    const variantValues = generateVariants(variantsConfig)
+    const allVariants = [
+      ...variants,
+      ...variantValues.filter((variant) => !variants.some((v) => v.value === variant.value))
+    ]
+    // Kiểm tra xem kích thước của variants có khớp với variantsConfig không
+    // if (allVariants.length !== variants.length) {
+    //   ctx.addIssue({
+    //     code: z.ZodIssueCode.custom,
+    //     message: `The number of variants (${variants.length}) does not match. Please check again.`,
+    //     path: ['variants']
+    //   })
+    // }
 
     // Kiểm tra xem các giá trị của variants có khớp với variantsConfig không
+
     for (let i = 0; i < variants.length; i++) {
-      const isValid = variants[i].value === variantValues[i].value || variants[i].value === 'default'
+      const isValid = variants[i].value === allVariants[i].value || variants[i].value === 'default'
       if (variants[i].value === 'default') {
         variantsConfig[0].type = 'default'
         variantsConfig[0].options = ['default']
@@ -114,7 +143,7 @@ export const CreateProductBodySchema = ProductSchema.pick({
       if (!isValid) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Variant value "${variants[i].value}" does not match the expected value "${variantValues[i].value}". Please check again.`,
+          message: `Variant value "${variants[i].value}" does not match the expected value "${allVariants[i].value}". Please check again.`,
           path: ['variants']
         })
       }
@@ -122,6 +151,10 @@ export const CreateProductBodySchema = ProductSchema.pick({
   })
 
 export const UpdateProductBodySchema = CreateProductBodySchema
+
+export const ChangeProductStatusBodySchema = ProductSchema.pick({
+  status: true
+}).strict()
 
 export type ProductParamsType = z.infer<typeof ProductParamsSchema>
 export type ProductQueryType = z.infer<typeof ProductQuerySchema>
@@ -131,3 +164,4 @@ export type GetProductDetailResType = z.infer<typeof GetProductDetailResSchema>
 export type UpsertVariantBodyType = z.infer<typeof UpsertVariantBodySchema>
 export type CreateProductBodyType = z.infer<typeof CreateProductBodySchema>
 export type UpdateProductBodyType = z.infer<typeof UpdateProductBodySchema>
+export type ChangeProductStatusBodyType = z.infer<typeof ChangeProductStatusBodySchema>

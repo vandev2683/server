@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { ChangePasswordBodyType, CreateUserBodyType, UpdateUserBodyType } from './user.model'
+import { ChangePasswordBodyType, ChangeUserStatusBodyType, CreateUserBodyType, UpdateUserBodyType } from './user.model'
 
 @Injectable()
 export class UserRepo {
@@ -66,13 +66,19 @@ export class UserRepo {
     })
   }
 
-  async changePassword(data: ChangePasswordBodyType) {
-    const { userId, newPassword } = data
+  async changePassword(userId: number, data: ChangePasswordBodyType) {
     return await this.prismaService.user.update({
       where: { id: userId },
       data: {
-        password: newPassword
+        password: data.password
       }
+    })
+  }
+
+  async changeStatus(userId: number, data: ChangeUserStatusBodyType) {
+    return await this.prismaService.user.update({
+      where: { id: userId },
+      data: { status: data.status }
     })
   }
 

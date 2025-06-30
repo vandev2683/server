@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateTableBodyType, UpdateTableBodyType } from './table.model'
+import { ChangeTableStatusBodyType, CreateTableBodyType, UpdateTableBodyType } from './table.model'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 
 @Injectable()
@@ -68,6 +68,13 @@ export class TableRepo {
     return await this.prismaService.table.update({
       where: { id: tableId },
       data
+    })
+  }
+
+  async changeStatus(tableId: number, data: ChangeTableStatusBodyType) {
+    return await this.prismaService.table.update({
+      where: { id: tableId },
+      data: { status: data.status }
     })
   }
 

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 import { TableRepo } from './table.repo'
-import { CreateTableBodyType, UpdateTableBodyType } from './table.model'
+import { ChangeTableStatusBodyType, CreateTableBodyType, UpdateTableBodyType } from './table.model'
 import { isUniquePrismaError } from 'src/shared/helpers'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 
@@ -55,6 +55,12 @@ export class TableService {
       }
       throw error
     }
+  }
+
+  async changeStatus(tableId: number, data: ChangeTableStatusBodyType) {
+    await this.verifyTableExists(tableId)
+    await this.tableRepo.changeStatus(tableId, data)
+    return { message: 'Table status updated successfully' }
   }
 
   async delete(tableId: number) {

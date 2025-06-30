@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, UnprocessableEntityException } from '@ne
 import { UserRepo } from './user.repo'
 import { UtilService } from 'src/shared/services/util.service'
 import { PaginationQueryType } from 'src/shared/models/request.model'
-import { isNotFoundPrismaError, isUniquePrismaError } from 'src/shared/helpers'
-import { ChangePasswordBodyType, CreateUserBodyType, UpdateUserBodyType } from './user.model'
+import { isUniquePrismaError } from 'src/shared/helpers'
+import { ChangePasswordBodyType, ChangeUserStatusBodyType, CreateUserBodyType, UpdateUserBodyType } from './user.model'
 import { S3Service } from 'src/shared/services/s3.service'
 
 @Injectable()
@@ -63,21 +63,19 @@ export class UserService {
     }
   }
 
-  async changePassword(data: ChangePasswordBodyType) {
-    await this.verifyUserExists(data.userId)
-    try {
-      const hashedPassword = await this.utilService.hash(data.newPassword)
-      await this.userRepo.changePassword({
-        userId: data.userId,
-        newPassword: hashedPassword
-      })
-      return { message: 'Password changed successfully' }
-    } catch (error) {
-      if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('User not found or password is incorrect')
-      }
-      throw error
-    }
+  async changePassword(userId: number, data: ChangePasswordBodyType) {
+    await this.verifyUserExists(userId)
+    const hashedPassword = await this.utilService.hash(data.password)
+    await this.userRepo.changePassword(userId, {
+      password: hashedPassword
+    })
+    return { message: 'Password changed successfully' }
+  }
+
+  async changeStatus(userId: number, data: ChangeUserStatusBodyType) {
+    await this.verifyUserExists(userId)
+    await this.userRepo.changeStatus(userId, data)
+    return { message: 'User status updated successfully' }
   }
 
   async delete(userId: number) {

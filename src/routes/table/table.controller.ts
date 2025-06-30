@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 import { TableService } from './table.service'
 import {
+  ChangeTableStatusBodyDTO,
   CreateTableBodyDTO,
   GetAllTablesResDTO,
   GetTableDetailResDTO,
@@ -45,6 +46,12 @@ export class TableController {
   @ZodSerializerDto(TableResDTO)
   update(@Param() params: TableParamsDTO, @Body() body: UpdateTableBodyDTO) {
     return this.tableService.update(params.tableId, body)
+  }
+
+  @Patch(':tableId/change-status')
+  @ZodSerializerDto(MessageResDTO)
+  changeStatus(@Param() params: TableParamsDTO, @Body() body: ChangeTableStatusBodyDTO) {
+    return this.tableService.changeStatus(params.tableId, body)
   }
 
   @Delete(':tableId')

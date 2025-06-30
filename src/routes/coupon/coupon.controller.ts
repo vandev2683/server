@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { CouponService } from './coupon.service'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 import {
+  ChangeCouponStatusBodyDTO,
   CouponParamsDTO,
   CouponResDTO,
   CreateCouponBodyDTO,
@@ -44,6 +45,12 @@ export class CouponController {
   @ZodSerializerDto(CouponResDTO)
   update(@Param() params: CouponParamsDTO, @Body() body: UpdateCouponBodyDTO) {
     return this.couponService.update(params.couponId, body)
+  }
+
+  @Patch(':couponId/change-status')
+  @ZodSerializerDto(MessageResDTO)
+  changeStatus(@Param() params: CouponParamsDTO, @Body() body: ChangeCouponStatusBodyDTO) {
+    return this.couponService.changeStatus(params.couponId, body)
   }
 
   @Delete(':couponId')

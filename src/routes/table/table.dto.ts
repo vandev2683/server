@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import {
+  ChangeTableStatusBodySchema,
   CreateTableBodySchema,
   GetAllTablesResSchema,
   GetTableDetailResSchema,
@@ -16,3 +17,4 @@ export class GetAllTablesResDTO extends createZodDto(GetAllTablesResSchema) {}
 export class GetTableDetailResDTO extends createZodDto(GetTableDetailResSchema) {}
 export class CreateTableBodyDTO extends createZodDto(CreateTableBodySchema) {}
 export class UpdateTableBodyDTO extends createZodDto(UpdateTableBodySchema) {}
+export class ChangeTableStatusBodyDTO extends createZodDto(ChangeTableStatusBodySchema) {}

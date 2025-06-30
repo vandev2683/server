@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod'
 import { ProductSchema } from 'src/shared/models/shared-product.model'
 import {
+  ChangeProductStatusBodySchema,
   CreateProductBodySchema,
   GetAllProductsResSchema,
   GetProductDetailResSchema,
@@ -18,3 +19,4 @@ export class GetAllProductsResDTO extends createZodDto(GetAllProductsResSchema) 
 export class GetProductDetailResDTO extends createZodDto(GetProductDetailResSchema) {}
 export class CreateProductBodyDTO extends createZodDto(CreateProductBodySchema) {}
 export class UpdateProductBodyDTO extends createZodDto(UpdateProductBodySchema) {}
+export class ChangeProductStatusBodyDTO extends createZodDto(ChangeProductStatusBodySchema) {}

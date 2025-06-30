@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { ManageProductService } from './manage-product.service'
 import {
+  ChangeProductStatusBodyDTO,
   CreateProductBodyDTO,
   GetAllProductsResDTO,
   GetProductDetailResDTO,
@@ -45,6 +46,12 @@ export class ManageProductController {
   @ZodSerializerDto(ProductResDTO)
   update(@Param() params: ProductParamsDTO, @Body() body: UpdateProductBodyDTO) {
     return this.manageProductService.update(params.productId, body)
+  }
+
+  @Patch(':productId/change-status')
+  @ZodSerializerDto(MessageResDTO)
+  changeStatus(@Param() params: ProductParamsDTO, @Body() body: ChangeProductStatusBodyDTO) {
+    return this.manageProductService.changeStatus(params.productId, body)
   }
 
   @Delete(':productId')

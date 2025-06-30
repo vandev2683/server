@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import {
+  ChangeCouponStatusBodySchema,
   CouponParamsSchema,
   CouponSchema,
   CreateCouponBodySchema,
@@ -14,3 +15,4 @@ export class GetCouponsResDTO extends createZodDto(GetCouponsResSchema) {}
 export class GetAllCouponsResDTO extends createZodDto(GetAllCouponsResSchema) {}
 export class CreateCouponBodyDTO extends createZodDto(CreateCouponBodySchema) {}
 export class UpdateCouponBodyDTO extends createZodDto(UpdateCouponBodySchema) {}
+export class ChangeCouponStatusBodyDTO extends createZodDto(ChangeCouponStatusBodySchema) {}

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateRoleBodyType, UpdateRoleBodyType } from './role.model'
+import { ChangeRoleStatusBodyType, CreateRoleBodyType, UpdateRoleBodyType } from './role.model'
 
 @Injectable()
 export class RoleRepo {
@@ -75,6 +75,15 @@ export class RoleRepo {
         permissions: {
           set: data.permissionIds.map((id) => ({ id }))
         }
+      }
+    })
+  }
+
+  async changeStatus(roleId: number, data: ChangeRoleStatusBodyType) {
+    return await this.prismaService.role.update({
+      where: { id: roleId },
+      data: {
+        isActive: data.isActive
       }
     })
   }

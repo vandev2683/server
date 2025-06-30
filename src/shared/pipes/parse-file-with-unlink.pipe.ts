@@ -4,7 +4,7 @@ import { unlink } from 'fs/promises'
 @Injectable()
 export class FilesValidationPipe implements PipeTransform {
   private readonly allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-  private readonly maxFileSize = 10 * 1024 * 1024
+  private readonly maxFileSize = 20 * 1024 * 1024
 
   async transform(files: Express.Multer.File[]) {
     try {

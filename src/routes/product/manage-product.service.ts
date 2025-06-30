@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { ProductRepo } from './product.repo'
-import { CreateProductBodyType, ProductQueryType, UpdateProductBodyType } from './product.model'
+import {
+  ChangeProductStatusBodyType,
+  CreateProductBodyType,
+  ProductQueryType,
+  UpdateProductBodyType
+} from './product.model'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { S3Service } from 'src/shared/services/s3.service'
 
@@ -49,9 +54,14 @@ export class ManageProductService {
   }
 
   async update(productId: number, data: UpdateProductBodyType) {
+    const existingProduct = await this.verifyProductExists(productId)
     try {
       const basePrice = data.variants[0].price
       const product = await this.productRepo.update(productId, { ...data, basePrice })
+      if (product.images) {
+        const oldImages = existingProduct.images.filter((image) => !product.images.includes(image))
+        await this.s3Service.deleteFiles(oldImages)
+      }
       return product
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
@@ -59,6 +69,12 @@ export class ManageProductService {
       }
       throw error
     }
+  }
+
+  async changeStatus(productId: number, data: ChangeProductStatusBodyType) {
+    await this.verifyProductExists(productId)
+    await this.productRepo.changeStatus(productId, data)
+    return { message: 'Product status updated successfully' }
   }
 
   async delete(productId: number) {
