@@ -55,11 +55,11 @@ export class AuthController {
     return this.authService.logout(body.refreshToken)
   }
 
-  @Post('reset-password')
+  @Post('forgot-password')
   @Public()
   @ZodSerializerDto(MessageResDTO)
-  resetPassword(@Body() body: ResetPasswordBodyDTO) {
-    return this.authService.resetPassword(body)
+  forgotPassword(@Body() body: ResetPasswordBodyDTO) {
+    return this.authService.forgotPassword(body)
   }
 
   @Get('google-link')

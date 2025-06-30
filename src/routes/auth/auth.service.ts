@@ -227,7 +227,7 @@ export class AuthService {
     }
   }
 
-  async resetPassword(data: ResetPasswordBodyType) {
+  async forgotPassword(data: ResetPasswordBodyType) {
     await this.verifyVerificationCodeExists({
       email: data.email,
       code: data.code,

@@ -84,6 +84,8 @@ export const LoginResSchema = z.object({
   })
 })
 
+export const RegisterResSchema = LoginBodySchema
+
 export const LogoutBodySchema = RefreshTokenBodySchema
 
 export const ResetPasswordBodySchema = UserSchema.pick({
